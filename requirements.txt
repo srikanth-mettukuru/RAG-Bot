@@ -1,1 +1,20 @@
+# Document preprocessing
 unstructured
+
+# Vector store
+chromadb
+
+# LangChain integrations
+langchain>=0.1.0,<0.2.0
+langchain-community>=0.0.20,<0.1.0
+langchain-openai>=0.0.8,<0.1.0
+langchain-core>=0.1.0,<0.2.0
+
+# OpenAI API client
+openai>=1.0.0
+
+# Environment variables
+python-dotenv
+
+# Web framework for UI
+streamlit
