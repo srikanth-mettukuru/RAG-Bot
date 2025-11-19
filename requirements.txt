@@ -1,5 +1,6 @@
 # Document preprocessing
 unstructured
+markdown
 
 # Vector store
 chromadb
