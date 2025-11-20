@@ -10,6 +10,32 @@ SUPPORTED_FILES = ['txt', 'md', 'html', 'htm', 'pptx', 'csv', 'docx']
 
 st.title("📄 Document Q&A Bot")
 
+# App Information Section
+with st.sidebar:
+    st.header("ℹ️ About This App")
+    
+    st.subheader("How to Use")
+    st.markdown("""
+    1. **Upload** a supported document (txt, md, html, pptx, csv, docx)
+    2. **Process** the document by clicking the "Process Document" button
+    3. **Ask questions** about your document content using the chat interface
+    4. **View sources** to see which parts of the document were used to answer your question
+    """)
+    
+    st.subheader("Technology Stack")
+    st.markdown("""
+    This application is built using **RAG (Retrieval-Augmented Generation)** architecture with:
+    
+    - 🔧 **Unstructured** - Document parsing and preprocessing
+    - 🗄️ **Chroma Vector DB** - Vector storage and similarity search
+    - ⛓️ **LangChain** - Framework for LLM application development
+    - 🤖 **OpenAI Embedding Model** - Text vectorization for semantic search
+    - 💬 **OpenAI LLM** - Natural language generation and question answering
+    - 🎨 **Streamlit** - Web application framework
+    
+    The app processes your documents, creates semantic embeddings, and uses retrieval-augmented generation to provide accurate, context-aware answers based on your document content.
+    """)
+
 # Initialize session state
 if "qa_chain" not in st.session_state:
     st.session_state.qa_chain = None
