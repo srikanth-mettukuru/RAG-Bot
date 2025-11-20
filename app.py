@@ -6,7 +6,7 @@ from document_processor import process_document_for_QnA
 st.set_page_config(page_title="Document Q&A Bot", page_icon="📄")
 
 # Supported file types - easily expandable
-SUPPORTED_FILES = ['txt', 'md', 'html', 'htm']
+SUPPORTED_FILES = ['txt', 'md', 'html', 'htm', 'pptx', 'csv', 'docx']
 
 st.title("📄 Document Q&A Bot")
 

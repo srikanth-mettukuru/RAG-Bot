@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 from preprocessing.txt_preprocessor import preprocess_txt
 from preprocessing.md_preprocessor import preprocess_md
 from preprocessing.html_preprocessor import preprocess_html
+from preprocessing.pptx_preprocessor import preprocess_pptx
+from preprocessing.csv_preprocessor import preprocess_csv
+from preprocessing.docx_preprocessor import preprocess_docx
 from rag_pipeline import RAGPipeline
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain, LLMChain
@@ -88,8 +91,24 @@ Answer based ONLY on the context above:"""
     # First, create the prompt to rephrase questions
     rephrase_prompt = PromptTemplate(
         input_variables=["chat_history", "question"],
-        template="Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.\n\nChat History:\n{chat_history}\n\nFollow Up Input: {question}\nStandalone question:"
+        template="""Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
+        
+IMPORTANT: Keep the rephrased question as close as possible to the original question's intent and keywords.
+Only add context from chat history if absolutely necessary for understanding.
+
+Chat History:
+{chat_history}
+
+Follow Up Input: {question}
+
+Instructions: 
+- If the follow up question is already clear and standalone, return it with minimal changes
+- Only add context if the question contains pronouns (it, this, that) or is unclear without history
+- Preserve the exact keywords and phrases from the original question when possible
+
+Standalone question:"""
     )
+
     # Create question generator chain
     question_generator_chain = LLMChain(llm=llm, prompt=rephrase_prompt)
     
@@ -125,6 +144,12 @@ def preprocess_document(document_path):
         return preprocess_md(document_path)
     elif file_ext == '.html' or file_ext == '.htm':
         return preprocess_html(document_path)
+    elif file_ext == '.pptx':        
+        return preprocess_pptx(document_path)
+    elif file_ext == '.csv':
+        return preprocess_csv(document_path)
+    elif file_ext == '.docx':
+        return preprocess_docx(document_path)
     else:
         print(f"Error: Unsupported file type '{file_ext}'. Currently supported: .txt, .md")
         return None

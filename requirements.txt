@@ -1,5 +1,7 @@
 # Document preprocessing
 unstructured
+unstructured[pptx]
+unstructured[docx]
 markdown
 
 # Vector store
