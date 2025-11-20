@@ -2,6 +2,11 @@ import os
 import sys
 from dotenv import load_dotenv
 from preprocessing.txt_preprocessor import preprocess_txt
+from preprocessing.md_preprocessor import preprocess_md
+from preprocessing.html_preprocessor import preprocess_html
+from preprocessing.pptx_preprocessor import preprocess_pptx
+from preprocessing.csv_preprocessor import preprocess_csv
+from preprocessing.docx_preprocessor import preprocess_docx
 from rag_pipeline import RAGPipeline
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain, LLMChain
@@ -36,7 +41,7 @@ def process_document_for_QnA(document_path):
     print(f"Processing document: {document_path}")
 
     # Step 1: Preprocess → Elements
-    elements = preprocess_txt(document_path)
+    elements = preprocess_document(document_path)
 
     # Step 2: Embedding model
     embedding_model = OpenAIEmbeddings(
@@ -86,8 +91,24 @@ Answer based ONLY on the context above:"""
     # First, create the prompt to rephrase questions
     rephrase_prompt = PromptTemplate(
         input_variables=["chat_history", "question"],
-        template="Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.\n\nChat History:\n{chat_history}\n\nFollow Up Input: {question}\nStandalone question:"
+        template="""Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
+        
+IMPORTANT: Keep the rephrased question as close as possible to the original question's intent and keywords.
+Only add context from chat history if absolutely necessary for understanding.
+
+Chat History:
+{chat_history}
+
+Follow Up Input: {question}
+
+Instructions: 
+- If the follow up question is already clear and standalone, return it with minimal changes
+- Only add context if the question contains pronouns (it, this, that) or is unclear without history
+- Preserve the exact keywords and phrases from the original question when possible
+
+Standalone question:"""
     )
+
     # Create question generator chain
     question_generator_chain = LLMChain(llm=llm, prompt=rephrase_prompt)
     
@@ -99,6 +120,39 @@ Answer based ONLY on the context above:"""
     )
 
     return qa_chain
+
+def get_file_extension(file_path):
+    """Get the file extension in lowercase"""
+    return os.path.splitext(file_path)[1].lower()
+
+def preprocess_document(document_path):
+    """
+    Preprocess document based on file type.
+    Currently supports .txt files, easily expandable for other types.
+    
+    Args:
+        document_path (str): Path to the document
+        
+    Returns:
+        list: Preprocessed elements or None if unsupported file type
+    """
+    file_ext = get_file_extension(document_path)
+    
+    if file_ext == '.txt':
+        return preprocess_txt(document_path)
+    elif file_ext == '.md':        
+        return preprocess_md(document_path)
+    elif file_ext == '.html' or file_ext == '.htm':
+        return preprocess_html(document_path)
+    elif file_ext == '.pptx':        
+        return preprocess_pptx(document_path)
+    elif file_ext == '.csv':
+        return preprocess_csv(document_path)
+    elif file_ext == '.docx':
+        return preprocess_docx(document_path)
+    else:
+        print(f"Error: Unsupported file type '{file_ext}'. Currently supported: .txt, .md")
+        return None
 
 
 def run_interactive_session(qa_chain):
@@ -127,8 +181,10 @@ def run_interactive_session(qa_chain):
             print(f"\nAnswer: {result['answer']}")            
             print("-" * 50)
 
-            # Display source chunks
-            if 'source_documents' in result and result['source_documents']:
+            # Only show source chunks if the question was actually answered (not rejected)
+            answer_text = result['answer'].lower()
+            if ("cannot answer this question based on the provided document content" not in answer_text and
+                'source_documents' in result and result['source_documents']):
                 print("\n📄 Source chunks used to answer this question:")
                 print("=" * 60)
                 for i, doc in enumerate(result['source_documents'], 1):
